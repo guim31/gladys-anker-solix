@@ -1,61 +1,182 @@
-# Demo Devices Template
+# Anker SOLIX
 
-This is the user documentation of the integration. Gladys re-hosts this file
-and shows a permanent **Documentation** link to it in the Configuration screen
-(in the user's language, with English as the fallback) — it is when
-configuring that the user needs it most. Keep the short onboarding hints in
-the `section` blocks of the manifest `config_schema`; put the long
-step-by-step (screenshots, troubleshooting…) here.
+Follow your **Anker SOLIX Solarbank** solar batteries (E1600, Solarbank 2,
+Solarbank 3), the Anker **Smart Meter** and **Smart Plugs**, and the **MI80**
+micro-inverters attached to a system in Gladys: battery level, charge and
+discharge, solar production, power sent to the home, grid import and export.
+With the "Allow settings" option, Gladys can also change the **usage mode**
+and the **output power** of a Solarbank 2 or 3.
 
-## What you get
+The integration goes through the Anker cloud, like the Anker app: it does
+not talk to the devices directly.
 
-Six demo devices show up after installation: a weather station (real data
-from Open-Meteo), a switch, a dimmable light, a smart plug with power
-metering, a motion sensor and a camera.
+> **Developed without the hardware**: it relies on real cloud answers
+> published by the [anker-solix-api](https://github.com/thomluther/anker-solix-api)
+> library. Feedback welcome. Independent integration, not affiliated with
+> Anker Innovations.
+
+## Overview
+
+- One Gladys device per **Solarbank**, **micro-inverter**, **meter** and
+  **plug** of each Anker system, plus one **"Anker SOLIX <system>"** device
+  for what belongs to the whole system (usage mode, home consumption, solar
+  production).
+- The values are read again every minute (configurable), and only the values
+  that change are sent to Gladys.
+- The total solar production is an **index** (kWh): the energy monitoring of
+  Gladys 5.2 derives the half-hourly production from it.
+- A dashboard widget shows the energy flow: sun → battery → home / grid, and
+  the battery level.
+
+## Requirements
+
+- Gladys **5.2.0** or later.
+- A system set up in the **Anker app** ("Power System"): the cloud publishes
+  no value for a device that belongs to no system.
+- The Anker account (e-mail, password, country chosen when the account was
+  created).
+
+**Recommended account: a second one.** For a long time, the Anker cloud
+accepted one session per account: Gladys logging in logged the phone app
+out. Since app 3.10 (July 2025) an account can be used in parallel, but the
+safest is still to create a second Anker account (another e-mail address)
+and **share your system** with it from the app (system sharing with family
+members). A shared ("member") account sees every value but **cannot change
+the settings**: to control the mode and the power from Gladys, use the owner
+account.
 
 ## Configuration
 
-1. Open the **Configuration** tab of the integration.
-2. Set the **latitude** and **longitude** the demo weather station should
-   observe (they default to Paris), and pick your temperature unit.
-   The **refresh interval** sets how often the weather station and the
-   plug's power are read: every 5 minutes by default, every minute at most.
-3. Save: the devices appear in the **Discovery** tab, ready to be added.
+1. Install the integration from **Integrations → Install from GitHub** (or
+   from the store once published).
+2. In the **Configuration** tab, enter:
+   - the **E-mail** and **Password** of the Anker account;
+   - the **Country of the account**: the two-letter code chosen when the
+     account was created (`FR`, `BE`, `CH`, `DE`, `ES`, `US`…). It selects the
+     Anker server (Europe or rest of the world); a wrong country gives a
+     successful login but no system;
+   - the **Language of the names**: language of the feature names and of the
+     messages (French by default);
+   - the **Refresh interval**: 1, 2 or 5 minutes. The Anker cloud does not
+     refresh faster (every 5 minutes for many Solarbank 2);
+   - **Allow settings**: off by default, Gladys then only reads.
+3. Save, then **Test the connection**: the message gives the number of
+   systems and devices found.
+4. Add the devices from the **Discovery** tab.
 
-The **Prefer the local connection** toggle drives the demo plug: it reports
-the channel it actually uses as a badge (local or cloud), with an orange dot
-when it runs degraded (local refused, cloud fallback).
+The session token is kept in `/data` (never the password) so the
+integration does not log in again at every restart.
 
-## Actions
+## Devices
 
-- **Test the weather provider** — performs a live request to Open-Meteo and
-  shows the current temperature and humidity under the button.
-- **Identify a device** — pick one of your devices in the list and it will
-  signal itself (the demo light "blinks" in the logs).
+**Anker SOLIX <system>** (one per Anker system):
 
-## Scenes
+| Feature                | Details                                                                                                                                      |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Usage mode             | Solarbank 2 and 3: smart meter, smart plugs, manual plan, AI mode (Solarbank 3), and read-only emergency charge, time of use, dynamic tariff |
+| Home consumption       | W, with a meter in the system                                                                                                                |
+| Total solar production | kWh, index since commissioning                                                                                                               |
+| Solar production today | kWh, read every 5 minutes                                                                                                                    |
 
-The integration adds its own cards to the scene editor (Gladys 5.1 or
-later), under the **Integrations** category:
+**Solarbank** (E1600, Solarbank 2 Pro / Plus / AC, Solarbank 3):
 
-- **Motion detected** (trigger) — starts the scene when a demo motion sensor
-  sees something move. Optionally pick the sensor and what moved (person,
-  animal); left empty, any detection matches. The following actions can
-  read what moved with `{{triggerEvent.data.target}}`.
-- **Identify a device** (action) — makes the chosen device signal itself.
-  It returns whether the device could signal itself, so the following
-  actions can depend on it.
+| Feature                        | Details                                                            |
+| ------------------------------ | ------------------------------------------------------------------ |
+| Battery level                  | %                                                                  |
+| Stored energy                  | kWh, from the capacity of the model and of the expansion batteries |
+| Charge power / discharge power | W, always positive                                                 |
+| Solar power                    | W, all inputs                                                      |
+| Solar input 1 to 4             | W, per input when the cloud gives it (Solarbank 2 and 3)           |
+| Output to home                 | W, output of the Solarbank                                         |
 
-## Dashboard
+**Micro-inverter** (MI80 in a system): solar power (W).
 
-Add the **Demo status** widget to a dashboard: it shows the live
-temperature of the weather station and the power of the office plug, the
-connection the plug currently uses (orange when degraded) and the observed
-location. Its **Identify the light** button makes the demo light signal
-itself.
+**Meter** (Anker Smart Meter, Shelly 3EM / Pro 3EM): grid import and grid
+export (W).
+
+**Plug** (Anker Smart Plug): power (W).
+
+The **usage mode** shows as buttons on the dashboard. A tap only acts when
+"Allow settings" is on (otherwise Gladys says why and shows the real mode
+again).
+
+## Widget
+
+The **Anker SOLIX** widget (setting: the system, optional) shows:
+
+- the **battery level** as a gauge;
+- **Solar**, **Charging / Discharging**, **To home** and **Grid import /
+  export** (with a meter): the energy flow reads from left to right;
+- the usage mode, the output preset, the stored energy, today's production
+  and the offline devices;
+- with "Allow settings" and the owner account, two buttons that open a form:
+  **Output power** (manual plan) and **Usage mode**.
+
+## Scene triggers and actions
+
+Triggers:
+
+- **Usage mode changed**: the mode changed outside Gladys (Anker app,
+  emergency charge, AI mode). Filters: system, new mode. Variables: new mode
+  (key and label), previous mode. A change made by Gladys does not fire it.
+- **Device offline or back**: a Solarbank, meter or plug stopped reporting to
+  the Anker cloud (two reads in a row), or reports again. Filters: device,
+  state. Variables: name, state.
+
+"Battery full" and "battery below a threshold" are not triggers of the
+integration: the Gladys **"Device state change"** trigger on the **Battery level**,
+with "Execute only when threshold is passed", already does it.
+
+Actions ("Allow settings" on, owner account, Solarbank 2 or 3):
+
+- **Set the Solarbank output power**: changes the power of the current slot
+  of the manual plan (rounded to the 10 W step, bounded by the system).
+  Output: power applied. The mode must be "Manual plan".
+- **Set the Solarbank usage mode**: smart meter, smart plugs, manual plan or
+  AI mode. Output: mode applied.
+
+Nothing else is ever written (no firmware, no battery reserve, no limits).
+
+## Scene examples
+
+- **Run the washing machine on the surplus**: "Device state change" trigger on _Grid
+  export_ above 500 W for 10 minutes → turn on the washing machine plug.
+- **Battery full**: "Device state change" trigger on _Battery level_ ≥ 100, only
+  when the threshold is passed → notification "Battery full, enjoy the sun".
+- **Evening**: at 6 pm → "Set the Solarbank output power" action to 300 W;
+  at 11 pm → 100 W (manual plan).
+- **Alert**: "Device offline or back", state _offline_ → notification with
+  `{{triggerEvent.data.device_name}}`.
 
 ## Troubleshooting
 
-The integration logs everything it does: check the integration logs from the
-Gladys UI (or `docker logs` on the host) with `LOG_LEVEL=debug` for the full
-detail.
+- **"The Anker cloud refused the e-mail or the password"**: check them in the
+  Anker app. Gladys does not retry until the configuration is saved again, so
+  the account does not get locked.
+- **Verification code required**: log in to the account once in the Anker
+  app, then save the configuration.
+- **Connected, but no system**: wrong country of the account, or the system
+  is not shared with this account.
+- **Values do not move**: the cloud sometimes updates a Solarbank 2 only every
+  5 minutes; check that the Anker app shows recent values.
+- **Setting refused**: "Allow settings" off, member account, Solarbank 1, or
+  a mode other than "Manual plan" for the power.
+- Detailed logs: `LOG_LEVEL=debug` variable of the container. The logs never
+  contain the e-mail, the password or the token.
+
+## Limitations
+
+- **Developed without the hardware**: tested against real cloud answers
+  published by anker-solix-api, not on an installation. Feedback welcome.
+- Cloud only: without Internet, or if Anker changes its API, no more values.
+  The values lag 1 to 5 minutes behind.
+- Quotas: one read per system and per interval, today's production every 5
+  minutes, at most one request every 0.5 s; the cloud limits each endpoint to
+  about ten requests per minute.
+- Settings for the Solarbank 2 and 3 only (mode, power of the current slot);
+  the Solarbank 1 is read-only.
+- Portable power stations (Solix C/F), Power Panel and X1: the cloud does not
+  give their values through this API (they go through MQTT), they are not
+  supported. Solarbank 4 and Solarbank Max: read when the cloud lists them in
+  the system, without settings nor tests.
+- The plugs are read, not controlled.

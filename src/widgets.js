@@ -1,169 +1,231 @@
 // -----------------------------------------------------------------------------
-// Dashboard widgets (SDK v0.14+, Gladys 5.1+).
+// PURE: the "Anker SOLIX" dashboard widget. No I/O.
 //
-// A widget puts the integration's own data on the Gladys dashboard without a
-// dedicated core widget. The manifest `widgets` field declares its identity
-// (key, label, icon, optional per-instance `settings`); at runtime the
-// integration returns a DECLARATIVE content — `text`, `value`, `gauge`,
-// `status`, `chart`, `card-list`, `image`, `button` — that the core renders
-// with its own theme, dark mode and translations. No HTML, no CSS.
+// The energy flow of one system, solar -> battery -> home / grid, read in the
+// order of the tiles, and the battery level as a gauge. Then a status list
+// (usage mode, output preset, stored energy, today's production, offline
+// devices) and, when the settings are allowed, two buttons that open a form:
+// the output power (manual plan only) and the usage mode (Gladys 5.2.0+).
 //
-// Each entry of WIDGETS is keyed by the widget `key` and exposes:
-//   - get(gladys, { settings, language, units, config }): the content,
-//     registered by index.js with `gladys.onWidgetGet(key, ...)`;
-//   - action(gladys, { actionKey, params, settings, config }) (optional): a
-//     tapped `button` carrying an `action`, registered with
-//     `gladys.onWidgetAction`.
-//
-// Check your contents in the tests with `validateWidgetContent` (exported by
-// the SDK, see test/widgets.test.js), or run with DEBUG=gladys-integration-sdk
-// to have the SDK log every violation of the vocabulary and the budget.
+// Core budget: 8 components, 6 tiles, 1 status, 4 buttons, 2 texts. The
+// content is localized from the language Gladys sends, and cached by the
+// core per language: the labels are built here, never in English only.
 // -----------------------------------------------------------------------------
 
-import {
-  createLogger,
-  DEVICE_FEATURE_CATEGORIES,
-  DEVICE_TRANSPORTS,
-  WIDGET_COLORS,
-} from '@gladysassistant/integration-sdk';
-import { identifyDevice } from './devices/index.js';
-import { weatherStation } from './devices/weatherStation.js';
-import { plug } from './devices/plug.js';
-import { light } from './devices/light.js';
+import { WIDGET_COLORS } from '@gladysassistant/integration-sdk';
+import { MODE_LABELS, WIDGET_TEXT, t } from './i18n.js';
+import { SETTABLE_MODES, siteDevices } from './anker/model.js';
 
-const logger = createLogger({ name: 'widgets' });
+export const WIDGET_KEY = 'energy_flow';
 
-// Widget key, as declared in the manifest `widgets` field.
-export const DEMO_STATUS_WIDGET = 'demo_status';
-
-// Keys of the `button` actions the demo_status content declares.
-const DEMO_STATUS_ACTIONS = { IDENTIFY_LIGHT: 'identify_light' };
-
-// How the plug transport reads in the status list.
-const TRANSPORT_STATUS = {
-  [DEVICE_TRANSPORTS.LOCAL]: { value: { en: 'Local', fr: 'Locale' }, color: WIDGET_COLORS.SUCCESS },
-  [DEVICE_TRANSPORTS.CLOUD]: { value: { en: 'Cloud', fr: 'Cloud' }, color: WIDGET_COLORS.INFO },
-  [DEVICE_TRANSPORTS.UNREACHABLE]: {
-    value: { en: 'Unreachable', fr: 'Injoignable' },
-    color: WIDGET_COLORS.DANGER,
-  },
+/** Keys of the widget buttons (an action key is used once per content). */
+export const WIDGET_ACTION = {
+  OUTPUT: 'set_output_power',
+  MODE: 'set_usage_mode',
 };
 
-// A live tile references a feature by its external_id: read it from the
-// discovery payload itself, so the widget and the device never disagree.
-function featureExternalId(gladys, config, blueprint, category) {
-  const device = blueprint.buildDevice(gladys, config);
-  return device.features.find((feature) => feature.category === category).external_id;
-}
+const sum = (values) => {
+  const defined = values.filter((value) => typeof value === 'number');
+  return defined.length > 0 ? defined.reduce((a, b) => a + b, 0) : undefined;
+};
 
-function plugConnectionStatus(gladys, config) {
-  const { transport, degraded } = plug.transport(gladys, config);
-  const { value, color } = TRANSPORT_STATUS[transport];
-  if (degraded) {
-    return {
-      value: { en: `${value.en} (degraded mode)`, fr: `${value.fr} (mode dégradé)` },
-      color: WIDGET_COLORS.WARNING,
-    };
+const fmt = (value, decimals = 0) =>
+  Number(value.toFixed(decimals)).toLocaleString('en-US', { maximumFractionDigits: decimals });
+
+function batteryColor(level) {
+  if (level < 20) {
+    return WIDGET_COLORS.DANGER;
   }
-  return { value, color };
+  if (level < 50) {
+    return WIDGET_COLORS.WARNING;
+  }
+  return WIDGET_COLORS.SUCCESS;
 }
 
-export const WIDGETS = {
-  [DEMO_STATUS_WIDGET]: {
-    // `settings` holds the per-instance values of the declared `settings`
-    // (none here); `language` and `units` are those of the user viewing the
-    // dashboard, for the values you format yourself. Multi-language objects
-    // (`{ en, fr }`) are picked by the core, like everywhere else.
-    async get(gladys, { config }) {
-      logger.debug(`onWidgetGet <- ${DEMO_STATUS_WIDGET}`);
-      return {
-        // Reload policy: the computed parts below only change with the
-        // config, and index.js nudges the widget on every (re)connection and
-        // config update (see refreshWidgets) — the TTL is just a safety net.
-        ttl_seconds: 300,
-        components: [
-          // Device-bound tiles: LIVE, they follow the published states over
-          // the core's real-time path. No TTL, no nudge involved.
-          {
-            type: 'value',
-            label: { en: 'Temperature', fr: 'Température' },
-            icon: 'thermometer',
-            device_feature: featureExternalId(
-              gladys,
-              config,
-              weatherStation,
-              DEVICE_FEATURE_CATEGORIES.TEMPERATURE_SENSOR,
-            ),
-          },
-          {
-            type: 'value',
-            label: { en: 'Office plug', fr: 'Prise du bureau' },
-            icon: 'zap',
-            device_feature: featureExternalId(
-              gladys,
-              config,
-              plug,
-              DEVICE_FEATURE_CATEGORIES.ENERGY_SENSOR,
-            ),
-          },
-          // Computed rows: what the integration knows that no device feature
-          // carries. Served from the core cache until the TTL or a nudge.
-          {
-            type: 'status',
-            items: [
-              {
-                label: { en: 'Plug connection', fr: 'Connexion de la prise' },
-                icon: 'wifi',
-                ...plugConnectionStatus(gladys, config),
-              },
-              {
-                label: { en: 'Observed location', fr: 'Position observée' },
-                icon: 'map-pin',
-                value: `${config.latitude.toFixed(2)}, ${config.longitude.toFixed(2)}`,
-                color: WIDGET_COLORS.NEUTRAL,
-              },
-            ],
-          },
-          // `params` are declared HERE and sent back as-is: the handler never
-          // receives user input (a dashboard can hang on a public wall).
-          {
-            type: 'button',
-            label: { en: 'Identify the light', fr: 'Identifier la lampe' },
-            icon: 'eye',
-            style: 'secondary',
-            action: {
-              key: DEMO_STATUS_ACTIONS.IDENTIFY_LIGHT,
-              params: { device: light.deviceExternalId(gladys) },
-            },
-          },
-        ],
-      };
-    },
-
-    // Resolve an optional toast (string or multi-language object, ≤ 200
-    // characters). After a successful action the core drops the cached
-    // content and every open dashboard refetches it: no nudge needed.
-    async action(gladys, { actionKey, params, config }) {
-      logger.info(`onWidgetAction <- ${DEMO_STATUS_WIDGET}.${actionKey}`);
-      if (actionKey === DEMO_STATUS_ACTIONS.IDENTIFY_LIGHT) {
-        return identifyDevice(gladys, params.device, config);
-      }
-      // Throwing acks the action as failed: the message reaches the user.
-      throw new Error(`Unknown widget action: ${actionKey}`);
-    },
-  },
-};
+/** One sentence instead of the energy flow (not configured, no data yet). */
+export function messageContent(text, language) {
+  return {
+    ttl_seconds: 60,
+    components: [{ type: 'text', variant: 'body', text: t(text, language) }],
+  };
+}
 
 /**
- * Freshness nudge: ask the core to re-pull every widget NOW instead of
- * waiting for the content TTL. Call it when you KNOW a computed content
- * changed (here: the config, which drives the plug transport and the observed
- * location) — and after every (re)connection, since the nudges are
- * fire-and-forget: rate-limited core-side to 1 per 10 s per widget, dropped
- * silently while disconnected.
+ * @param {object} options
+ * @param {object} options.site parsed system (model.js parseSite)
+ * @param {string} options.language
+ * @param {number} options.ttlSeconds
+ * @param {number} [options.productionTodayKwh]
+ * @param {boolean} [options.allowSettings]
+ * @param {{ min: number, max: number, preset?: number }} [options.output] output
+ *   limits and current preset of the manual plan, when known
  */
-export function refreshWidgets(gladys) {
-  for (const key of Object.keys(WIDGETS)) {
-    gladys.requestWidgetRefresh(key);
+export function buildEnergyFlowContent({
+  site,
+  language,
+  ttlSeconds,
+  productionTodayKwh,
+  allowSettings = false,
+  output,
+}) {
+  const text = (key) => t(WIDGET_TEXT[key], language);
+  const components = [];
+
+  if (site.batteryLevel !== undefined) {
+    components.push({
+      type: 'gauge',
+      label: text('battery'),
+      value: site.batteryLevel,
+      min: 0,
+      max: 100,
+      unit: '%',
+      color: batteryColor(site.batteryLevel),
+    });
   }
+
+  const solar = sum([
+    ...site.solarbanks.map((sb) => sb.solarPower),
+    ...site.inverters.map((inverter) => inverter.solarPower),
+  ]);
+  if (solar !== undefined) {
+    components.push({
+      type: 'value',
+      label: text('solar'),
+      value: Math.round(solar),
+      unit: 'W',
+      icon: 'sun',
+      color: solar > 0 ? WIDGET_COLORS.SUCCESS : WIDGET_COLORS.NEUTRAL,
+    });
+  }
+
+  const charge = sum(site.solarbanks.map((sb) => sb.chargePower)) ?? 0;
+  const discharge = sum(site.solarbanks.map((sb) => sb.dischargePower)) ?? 0;
+  if (site.solarbanks.length > 0) {
+    const charging = charge >= discharge;
+    components.push({
+      type: 'value',
+      label: text(charge === discharge ? 'battery' : charging ? 'charging' : 'discharging'),
+      value: Math.round(charging ? charge : discharge),
+      unit: 'W',
+      icon: charging ? 'battery-charging' : 'battery',
+      color:
+        charge === discharge
+          ? WIDGET_COLORS.NEUTRAL
+          : charging
+            ? WIDGET_COLORS.SUCCESS
+            : WIDGET_COLORS.INFO,
+    });
+  }
+
+  const home = sum(site.solarbanks.map((sb) => sb.outputPower));
+  if (home !== undefined) {
+    components.push({
+      type: 'value',
+      label: text('home'),
+      value: Math.round(home),
+      unit: 'W',
+      icon: 'home',
+      color: WIDGET_COLORS.PRIMARY,
+    });
+  }
+
+  const meter = site.meters[0];
+  if (meter && (meter.gridImport !== undefined || meter.gridExport !== undefined)) {
+    const exporting = (meter.gridExport ?? 0) > 0 && (meter.gridImport ?? 0) === 0;
+    components.push({
+      type: 'value',
+      label: text(exporting ? 'gridExport' : 'gridImport'),
+      value: Math.round(exporting ? meter.gridExport : (meter.gridImport ?? 0)),
+      unit: 'W',
+      icon: exporting ? 'upload' : 'download',
+      color: exporting ? WIDGET_COLORS.SUCCESS : WIDGET_COLORS.WARNING,
+    });
+  }
+
+  const items = [];
+  if (site.scheduleCapable && site.usageMode) {
+    items.push({
+      label: text('mode'),
+      value: t(MODE_LABELS[site.usageMode], language),
+      icon: 'sliders',
+    });
+  }
+  const preset = output?.preset ?? site.outputPreset;
+  if (preset !== undefined) {
+    items.push({ label: text('preset'), value: `${fmt(preset)} W`, icon: 'target' });
+  }
+  const stored = sum(site.solarbanks.map((sb) => sb.energyKwh));
+  if (stored !== undefined) {
+    items.push({ label: text('stored'), value: `${fmt(stored, 2)} kWh`, icon: 'battery' });
+  }
+  if (productionTodayKwh !== undefined) {
+    items.push({ label: text('today'), value: `${fmt(productionTodayKwh, 2)} kWh`, icon: 'sun' });
+  }
+  const offline = siteDevices(site).filter(({ device }) => device.online === false);
+  if (offline.length > 0) {
+    items.push({
+      label: text('offline'),
+      value: offline
+        .map(({ device }) => device.name)
+        .join(', ')
+        .slice(0, 40),
+      icon: 'wifi-off',
+      color: WIDGET_COLORS.DANGER,
+    });
+  }
+  if (items.length > 0) {
+    components.push({ type: 'status', items });
+  }
+
+  if (allowSettings && site.scheduleCapable && site.owner) {
+    if (site.usageMode === 'manual' && output) {
+      components.push({
+        type: 'button',
+        label: text('setOutput'),
+        icon: 'zap',
+        style: 'secondary',
+        action: {
+          key: WIDGET_ACTION.OUTPUT,
+          params: { site: site.id },
+          fields: [
+            {
+              key: 'watts',
+              type: 'number',
+              // Form texts are multi-language objects for the core.
+              label: WIDGET_TEXT.watts,
+              required: true,
+              min: output.min,
+              max: output.max,
+              default: Math.min(output.max, Math.max(output.min, Math.round(preset ?? output.min))),
+            },
+          ],
+        },
+      });
+    }
+    const modes = site.modes.filter((mode) => SETTABLE_MODES.includes(mode));
+    if (modes.length > 1) {
+      components.push({
+        type: 'button',
+        label: text('setMode'),
+        icon: 'sliders',
+        style: 'secondary',
+        action: {
+          key: WIDGET_ACTION.MODE,
+          params: { site: site.id },
+          fields: [
+            {
+              key: 'mode',
+              type: 'select',
+              label: WIDGET_TEXT.mode,
+              required: true,
+              options: modes.map((mode) => ({ value: mode, label: MODE_LABELS[mode] })),
+              ...(modes.includes(site.usageMode) ? { default: site.usageMode } : {}),
+            },
+          ],
+        },
+      });
+    }
+  }
+
+  return { ttl_seconds: ttlSeconds, components };
 }

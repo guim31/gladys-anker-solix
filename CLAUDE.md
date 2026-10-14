@@ -18,6 +18,7 @@ npm install
 npm test                                  # node --test, the built-in runner
 node --test test/devices.test.js          # one file
 node --test --test-name-pattern "plug"    # tests whose name matches
+node scripts/probe.mjs                    # real Anker cloud, fake account (needs Internet)
 npm run lint                              # ESLint
 npm run format:check                      # Prettier, as the CI runs it
 npm run format                            # Prettier, fix in place
@@ -31,16 +32,23 @@ pushing.
 ## Architecture
 
 ```
-index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+index.js                          SDK wiring only: src/app.js registers the handlers before connect()
+src/app.js                        discovery, refresh timer, states, settings, scene triggers, widget
+src/anker/client.js               Anker cloud client: login, session in /data, spacing, error kinds
+src/anker/crypto.js               ECDH P-256 + AES-256-CBC password encryption of the login
+src/anker/model.js                reading get_scen_info into a normalized system (pure)
+src/anker/schedule.js             Solarbank 2/3 schedule changes: usage mode, output power (pure)
+src/devices.js                    systems -> Gladys devices and states (pure)
+src/widgets.js                    "Anker SOLIX" dashboard widget content (pure)
+src/i18n.js                       feature names, modes, messages, widget texts in en/fr/de/es
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
-gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
-test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+src/issues.js                     repeated failures logged once, recovery once
+src/store.js                      JSON files in /data (the cloud session)
+scripts/probe.mjs                 read-only probe of the real cloud (fake account by default)
+gladys-assistant-integration.json manifest: name, config_schema, actions, scenes, widget...
+docs/{en,fr,de,es}.md             user documentation, same sections (test/i18n.test.js)
+test/                             node --test, SDK fake Gladys + simulated Anker cloud (test/helpers)
+test/fixtures/anker/              real cloud answers from anker-solix-api, anonymized
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -70,8 +78,10 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** exists in English, French, German ("du") and Spanish
+  ("usted"): action messages, manifest texts, feature names, widget texts, and
+  `docs/en.md`, `docs/fr.md`, `docs/de.md`, `docs/es.md`, kept in sync
+  (`test/i18n.test.js`).
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -233,3 +243,62 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - Docs `en`, `fr`, `de`, `es` avec les mêmes sections.
 - Chauffe, ouverture, sécurité : ne rien rendre pilotable « comme un thermostat » ou par un assistant
   vocal quand une erreur serait dangereuse (leçon d'OctoPrint).
+
+## Intégration Anker SOLIX (spécifique à ce dépôt)
+
+**API.** Cloud de l'appli Anker (`ankerpower-api-eu.anker.com`, ou
+`ankerpower-api.anker.com` pour les pays de `COM_COUNTRIES`), documenté par
+`thomluther/anker-solix-api` (MIT) : `passport/login`, puis
+`power_service/v1/site/get_site_list`, `get_scen_info` (l'écran d'accueil de
+l'appli, par système), `energy_analysis` (statistiques du jour),
+`get_site_device_param` / `set_site_device_param` (type 6 : planning
+Solarbank 2/3). Réponse `{ code, msg, data }`, `code: 0` = succès. Le dossier
+`examples/` de la bibliothèque contient des réponses réelles : c'est la source
+des fixtures (`test/fixtures/anker/`, réanonymisées : SN, site_id, noms de
+lieux).
+
+**Pièges découverts**
+
+- **Login** : le mot de passe part chiffré (ECDH P-256 avec la clé publique du
+  serveur, secret partagé = clé AES-256-CBC, IV = ses 16 premiers octets,
+  base64). En-têtes `x-auth-token` et `gtoken` = md5 du `user_id`. Le jeton
+  a une expiration (`token_expires_at`) : on le garde dans `/data`, sinon chaque redémarrage refait
+  un login. Un mauvais mot de passe (26108) ne doit **jamais** être réessayé
+  en boucle : on attend une nouvelle configuration (risque de blocage du
+  compte).
+- **Un compte partagé (membre, `ms_type` 2) lit tout mais ne peut rien
+  régler** (code 160003) : les réglages exigent le compte propriétaire.
+  Depuis l'appli 3.10 (juillet 2025), le compte propriétaire peut être
+  utilisé en parallèle de l'appli ; avant, une seule session par compte.
+- **Tous les nombres sont des chaînes**, parfois vides ou avec unité
+  (`"200W"`). `battery_power` d'une Solarbank est l'état de charge en %, pas
+  une puissance. `charging_power` est trompeur : charge/décharge viennent de
+  `bat_charge_power` / `bat_discharge_power`, sinon du bilan PV − sortie.
+- **Les entrées PV** sont dans `pv_power.pvN` (par appareil, multisystème) ou
+  `solarbank_info.solar_power_N` (seulement quand le système n'a qu'une
+  Solarbank) ; une Solarbank 2 cascadée avec des Solarbank 1 n'en a pas : ne
+  créer la fonctionnalité que si la valeur existe.
+- **Fraîcheur** : le cloud met à jour un système toutes les 60 s au mieux,
+  toutes les 5 min pour beaucoup de Solarbank 2. Quotas : ~10 requêtes par
+  minute et par point d'accès (10-12 pour `energy_analysis`), 429 au-delà.
+  D'où : intervalle 60/120/300 s seulement, `energy_analysis` toutes les
+  5 min, une requête à la fois espacée de 0,5 s.
+- **Planning type 6** : on renvoie le sous-ensemble attendu par mode
+  (`custom_rate_plan` + `blend_plan` pour manuel / prises, `manual_backup` +
+  `use_time` sinon), tel que relu, en ne changeant que la plage en cours.
+  `week` compte depuis dimanche (0). Le mode manuel sans plan reçoit le plan
+  par défaut de l'appli.
+- **Le mode d'utilisation est un `text/select`** : le front l'affiche toujours
+  en boutons cliquables (pas de lecture seule pour ce type) ; `onSetValue`
+  refuse tant que « Autoriser les réglages » est décoché et republie le mode
+  réel (`forgetPublishedStates` puis republication).
+- **Pas de couple catégorie/type pour une consigne de puissance pilotable** :
+  la puissance de sortie se règle par action de scène et formulaire de widget
+  (Gladys 5.2.0), pas par une fonctionnalité.
+- **Formulaire de bouton de widget** : `label` des champs et des options en
+  objets multilingues (le validateur du SDK refuse une chaîne).
+- **Batterie pleine / sous un seuil** ne sont pas des déclencheurs : le
+  déclencheur « Changement d'état de l'appareil » du cœur, avec
+  `threshold_only`, le fait sur le niveau de batterie.
+- Les stations portables (C/F), Power Panel et X1 ne donnent pas leurs valeurs
+  par cette API (MQTT seulement, non implémenté).

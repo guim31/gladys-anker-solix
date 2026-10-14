@@ -1,0 +1,164 @@
+{
+  "site": {
+    "site_id": "d7e8512d-9ff8-5f33-3917-3a294b99e0ef",
+    "site_name": "Maison",
+    "site_img": "",
+    "device_type_list": [3, 6],
+    "ms_type": 1,
+    "power_site_type": 5,
+    "is_allow_delete": true,
+    "support_device_models": ["A17C1", "A17X7", "A17X8"],
+    "current_site_device_models": ["A17C1", "A17X7"]
+  },
+  "scene": {
+    "home_info": {
+      "home_name": "Home",
+      "home_img": "",
+      "charging_power": "0.00",
+      "power_unit": "W"
+    },
+    "solar_list": [],
+    "pps_info": {
+      "pps_list": [],
+      "total_charging_power": "0.00",
+      "power_unit": "W",
+      "total_battery_power": "0.00",
+      "updated_time": "",
+      "pps_status": 0
+    },
+    "statistics": [
+      {
+        "type": "1",
+        "total": "151.70",
+        "unit": "kWh"
+      },
+      {
+        "type": "2",
+        "total": "151.24",
+        "unit": "kg"
+      },
+      {
+        "type": "3",
+        "total": "24.27",
+        "unit": "€"
+      }
+    ],
+    "topology_type": "1",
+    "solarbank_info": {
+      "solarbank_list": [
+        {
+          "device_pn": "A17C1",
+          "device_sn": "TESTFKA2ZOO6GGYF",
+          "device_name": "Solarbank 2 E1600 Pro",
+          "device_img": "",
+          "battery_power": "39",
+          "bind_site_status": "",
+          "charging_power": "0",
+          "power_unit": "W",
+          "charging_status": "0",
+          "status": "1",
+          "wireless_type": "1",
+          "main_version": "",
+          "photovoltaic_power": "741",
+          "output_power": "0",
+          "create_time": 1719046667,
+          "set_load_power": "",
+          "sub_package_num": 1,
+          "output_cutoff_data": 5,
+          "is_display": true
+        }
+      ],
+      "total_charging_power": "741",
+      "power_unit": "W",
+      "charging_status": "0",
+      "total_battery_power": "0.39",
+      "updated_time": "1970-01-01 00:00:00",
+      "total_photovoltaic_power": "741",
+      "total_output_power": "0.00",
+      "display_set_power": false,
+      "battery_discharge_power": "0",
+      "ac_power": "0",
+      "to_home_load": "0",
+      "is_display_data": true,
+      "solar_power_1": "191",
+      "solar_power_2": "182",
+      "solar_power_3": "190",
+      "solar_power_4": "178"
+    },
+    "retain_load": "0W",
+    "scene_mode": 3,
+    "home_load_power": "684",
+    "updated_time": "01-01-0001 00:00:00",
+    "power_site_type": 5,
+    "site_id": "d7e8512d-9ff8-5f33-3917-3a294b99e0ef",
+    "powerpanel_list": [],
+    "grid_info": {
+      "grid_list": [
+        {
+          "device_pn": "A17X7",
+          "device_sn": "TEST1KEEMK8YE94U",
+          "device_name": "Smart Meter",
+          "device_img": "",
+          "create_time": 1719046667,
+          "status": "1",
+          "bind_site_status": "",
+          "wireless_type": ""
+        }
+      ],
+      "photovoltaic_to_grid_power": "0",
+      "grid_to_home_power": "684",
+      "grid_status": 0,
+      "has_history_data": true
+    },
+    "is_downgrade": false,
+    "error_code": 0,
+    "smart_plug_info": null,
+    "feature_switch": {
+      "multi_pv": false,
+      "smart_plug": false
+    },
+    "other_loads_power": "684"
+  },
+  "schedule": {
+    "mode_type": 3,
+    "custom_rate_plan": [
+      {
+        "index": 0,
+        "week": [0, 6],
+        "ranges": [
+          {
+            "start_time": "00:00",
+            "end_time": "24:00",
+            "power": 110
+          }
+        ]
+      },
+      {
+        "index": 1,
+        "week": [1, 2, 3, 4, 5],
+        "ranges": [
+          {
+            "start_time": "00:00",
+            "end_time": "08:00",
+            "power": 100
+          },
+          {
+            "start_time": "08:00",
+            "end_time": "22:00",
+            "power": 120
+          },
+          {
+            "start_time": "22:00",
+            "end_time": "24:00",
+            "power": 90
+          }
+        ]
+      }
+    ],
+    "blend_plan": null,
+    "default_home_load": 200,
+    "max_load": 800,
+    "min_load": 0,
+    "step": 10
+  }
+}
