@@ -18,7 +18,7 @@ of `get_scen_info`), and when the export had them `schedule` (parsed
 | `sb2-pro-meter-manual.json` | Solarbank 2 Pro, Anker smart meter, manual plan                   |
 | `sb2-pro-plugs.json`        | Solarbank 2 Pro, two smart plugs, smart plug mode                 |
 | `sb2-sb1-cascaded.json`     | Solarbank 2 Pro cascaded with two Solarbank E1600, Shelly Pro 3EM |
-| `sb2-ac-use-time.json`      | Solarbank 2 AC, smart meter, time-of-use mode                     |
+| `sb2-ac-use-time.json`      | Solarbank 2 AC, Shelly Pro 3EM, time-of-use mode                  |
 | `sb3-smart-meter.json`      | Solarbank 3, Shelly Pro 3EM, AI mode                              |
 | `sb3-plugs.json`            | Solarbank 3, four smart plugs                                     |
 | `sb3-multisystem.json`      | three Solarbank 3, smart meter                                    |
