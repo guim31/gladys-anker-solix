@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-14
+
 ### Added
 
 - Anker SOLIX systems in Gladys, through the Anker cloud (e-mail, password and
@@ -33,4 +35,5 @@ the notes of the version's GitHub Release.
 - The integration reads the cloud on its own timer (every 1, 2 or 5 minutes,
   never faster), publishes only the changes and keeps its logs quiet.
 
-[Unreleased]: https://github.com/guim31/gladys-anker-solix/commits/main
+[Unreleased]: https://github.com/guim31/gladys-anker-solix/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/guim31/gladys-anker-solix/releases/tag/v1.0.1
