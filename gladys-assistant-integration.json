@@ -1,177 +1,667 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "Anker SOLIX",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Anker SOLIX Solarbank, smart meter and smart plugs in Gladys, through the Anker cloud.",
+    "fr": "Les Solarbank, compteurs et prises Anker SOLIX dans Gladys, via le cloud Anker.",
+    "de": "Anker SOLIX Solarbank, Smart Meter und Steckdosen in Gladys, über die Anker-Cloud.",
+    "es": "Solarbank, medidores y enchufes Anker SOLIX en Gladys, a través de la nube de Anker."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
-  "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "docker_image": "ghcr.io/guim31/gladys-anker-solix:1.0.0",
+  "gladys_version": ">=5.2.0",
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-anker-solix/main/cover.png",
+  "categories": ["energy"],
+  "transports": ["cloud"],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "Anker account",
+        "fr": "Compte Anker",
+        "de": "Anker-Konto",
+        "es": "Cuenta Anker"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "Use the account of the Anker app. Best: create a second Anker account and share your system with it from the app, so Gladys never disturbs your phone; a shared account can only read, settings need the owner account. Not affiliated with Anker Innovations.",
+        "fr": "Utilisez le compte de l'appli Anker. Le mieux : créez un second compte Anker et partagez-lui votre système depuis l'appli, Gladys ne gêne alors jamais votre téléphone ; un compte partagé ne fait que lire, les réglages exigent le compte propriétaire. Sans lien avec Anker Innovations.",
+        "de": "Verwende das Konto der Anker-App. Am besten legst du ein zweites Anker-Konto an und teilst dein System in der App damit, dann stört Gladys dein Handy nie; ein geteiltes Konto kann nur lesen, Einstellungen brauchen das Besitzerkonto. Keine Verbindung zu Anker Innovations.",
+        "es": "Utilice la cuenta de la aplicación Anker. Lo mejor: cree una segunda cuenta Anker y comparta su sistema con ella desde la aplicación, así Gladys nunca molesta a su teléfono; una cuenta compartida solo lee, los ajustes requieren la cuenta propietaria. Sin relación con Anker Innovations."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://github.com/guim31/gladys-anker-solix",
+          "label": {
+            "en": "Integration documentation",
+            "fr": "Documentation de l'intégration",
+            "de": "Dokumentation der Integration",
+            "es": "Documentación de la integración"
+          }
+        },
+        {
+          "url": "https://github.com/thomluther/anker-solix-api",
+          "label": {
+            "en": "Reference library (anker-solix-api)",
+            "fr": "Bibliothèque de référence (anker-solix-api)",
+            "de": "Referenzbibliothek (anker-solix-api)",
+            "es": "Biblioteca de referencia (anker-solix-api)"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
+      "key": "email",
+      "type": "string",
+      "label": {
+        "en": "E-mail",
+        "fr": "E-mail",
+        "de": "E-Mail",
+        "es": "Correo electrónico"
       },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
+      "description": {
+        "en": "E-mail of the Anker account.",
+        "fr": "E-mail du compte Anker.",
+        "de": "E-Mail-Adresse des Anker-Kontos.",
+        "es": "Correo electrónico de la cuenta Anker."
+      },
+      "placeholder": {
+        "en": "e.g. gladys@example.com",
+        "fr": "ex. gladys@example.com",
+        "de": "z. B. gladys@example.com",
+        "es": "p. ej. gladys@example.com"
+      },
+      "required": true
     },
     {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
+      "key": "password",
+      "type": "secret",
+      "label": {
+        "en": "Password",
+        "fr": "Mot de passe",
+        "de": "Passwort",
+        "es": "Contraseña"
       },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
+      "required": true
     },
     {
-      "key": "unit",
+      "key": "country",
+      "type": "string",
+      "label": {
+        "en": "Country of the account",
+        "fr": "Pays du compte",
+        "de": "Land des Kontos",
+        "es": "País de la cuenta"
+      },
+      "description": {
+        "en": "Two-letter code chosen when the account was created (FR, DE, ES, BE, CH, US...). It selects the Anker server.",
+        "fr": "Code à deux lettres choisi à la création du compte (FR, DE, ES, BE, CH, US...). Il choisit le serveur Anker.",
+        "de": "Zweistelliger Code, der bei der Kontoerstellung gewählt wurde (FR, DE, ES, BE, CH, US...). Er wählt den Anker-Server.",
+        "es": "Código de dos letras elegido al crear la cuenta (FR, DE, ES, BE, CH, US...). Elige el servidor de Anker."
+      },
+      "placeholder": {
+        "en": "e.g. FR",
+        "fr": "ex. FR",
+        "de": "z. B. DE",
+        "es": "p. ej. ES"
+      },
+      "required": true,
+      "default": "FR"
+    },
+    {
+      "key": "language",
       "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
+      "label": {
+        "en": "Language of the names",
+        "fr": "Langue des noms",
+        "de": "Sprache der Namen",
+        "es": "Idioma de los nombres"
+      },
+      "description": {
+        "en": "Language of the feature names and of the messages of the integration.",
+        "fr": "Langue des noms de fonctionnalités et des messages de l'intégration.",
+        "de": "Sprache der Funktionsnamen und der Meldungen der Integration.",
+        "es": "Idioma de los nombres de las funciones y de los mensajes de la integración."
+      },
       "required": false,
-      "default": "celsius",
+      "default": "fr",
       "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais",
+            "de": "Englisch",
+            "es": "Inglés"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français",
+            "de": "Französisch",
+            "es": "Francés"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "German",
+            "fr": "Allemand",
+            "de": "Deutsch",
+            "es": "Alemán"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spanish",
+            "fr": "Espagnol",
+            "de": "Spanisch",
+            "es": "Español"
+          }
+        }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "key": "refresh_interval",
+      "type": "select",
+      "label": {
+        "en": "Refresh interval",
+        "fr": "Intervalle de rafraîchissement",
+        "de": "Aktualisierungsintervall",
+        "es": "Intervalo de actualización"
+      },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "The Anker cloud refreshes the values every minute at best, every 5 minutes for many Solarbank 2.",
+        "fr": "Le cloud Anker rafraîchit les valeurs toutes les minutes au mieux, toutes les 5 minutes pour beaucoup de Solarbank 2.",
+        "de": "Die Anker-Cloud aktualisiert die Werte bestenfalls jede Minute, bei vielen Solarbank 2 alle 5 Minuten.",
+        "es": "La nube de Anker actualiza los valores cada minuto como mucho, cada 5 minutos en muchas Solarbank 2."
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": "60",
+      "options": [
+        {
+          "value": "60",
+          "label": {
+            "en": "1 minute",
+            "fr": "1 minute",
+            "de": "1 Minute",
+            "es": "1 minuto"
+          }
+        },
+        {
+          "value": "120",
+          "label": {
+            "en": "2 minutes",
+            "fr": "2 minutes",
+            "de": "2 Minuten",
+            "es": "2 minutos"
+          }
+        },
+        {
+          "value": "300",
+          "label": {
+            "en": "5 minutes",
+            "fr": "5 minutes",
+            "de": "5 Minuten",
+            "es": "5 minutos"
+          }
+        }
+      ]
+    },
+    {
+      "key": "allow_settings",
+      "type": "boolean",
+      "label": {
+        "en": "Allow settings",
+        "fr": "Autoriser les réglages",
+        "de": "Einstellungen erlauben",
+        "es": "Permitir los ajustes"
+      },
+      "description": {
+        "en": "Lets Gladys change the usage mode and the output power of a Solarbank 2 or 3 (owner account only). Off: Gladys only reads.",
+        "fr": "Permet à Gladys de changer le mode d'utilisation et la puissance de sortie d'une Solarbank 2 ou 3 (compte propriétaire seulement). Décoché : Gladys ne fait que lire.",
+        "de": "Erlaubt Gladys, den Betriebsmodus und die Ausgangsleistung einer Solarbank 2 oder 3 zu ändern (nur Besitzerkonto). Aus: Gladys liest nur.",
+        "es": "Permite a Gladys cambiar el modo de uso y la potencia de salida de una Solarbank 2 o 3 (solo la cuenta propietaria). Desactivado: Gladys solo lee."
+      },
+      "required": false,
+      "default": false
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
-      "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ]
+      "key": "test_connection",
+      "label": {
+        "en": "Test the connection",
+        "fr": "Tester la connexion",
+        "de": "Verbindung testen",
+        "es": "Probar la conexión"
+      },
+      "timeout_seconds": 60
     }
   ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
+      "key": "usage_mode_changed",
+      "label": {
+        "en": "Usage mode changed",
+        "fr": "Mode d'utilisation changé",
+        "de": "Betriebsmodus geändert",
+        "es": "Modo de uso cambiado"
+      },
       "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+        "en": "The usage mode of a system changed outside Gladys (Anker app, AI mode, emergency charge).",
+        "fr": "Le mode d'utilisation d'un système a changé hors de Gladys (appli Anker, mode IA, charge de secours).",
+        "de": "Der Betriebsmodus eines Systems hat sich außerhalb von Gladys geändert (Anker-App, KI-Modus, Notladung).",
+        "es": "El modo de uso de un sistema cambió fuera de Gladys (aplicación Anker, modo IA, carga de emergencia)."
       },
       "fields": [
         {
-          "key": "device",
+          "key": "system",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
+          "label": {
+            "en": "Anker system",
+            "fr": "Système Anker",
+            "de": "Anker-System",
+            "es": "Sistema Anker"
+          },
+          "description": {
+            "en": "The system device, or any device of the system.",
+            "fr": "L'appareil système, ou n'importe quel appareil du système.",
+            "de": "Das Systemgerät oder ein beliebiges Gerät des Systems.",
+            "es": "El dispositivo del sistema o cualquier dispositivo del sistema."
+          }
         },
         {
-          "key": "target",
+          "key": "mode",
           "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
+          "label": {
+            "en": "New mode",
+            "fr": "Nouveau mode",
+            "de": "Neuer Modus",
+            "es": "Nuevo modo"
+          },
           "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
+            {
+              "value": "smartmeter",
+              "label": {
+                "en": "Smart meter",
+                "fr": "Compteur intelligent",
+                "de": "Smart Meter",
+                "es": "Medidor inteligente"
+              }
+            },
+            {
+              "value": "smartplugs",
+              "label": {
+                "en": "Smart plugs",
+                "fr": "Prises connectées",
+                "de": "Smarte Steckdosen",
+                "es": "Enchufes inteligentes"
+              }
+            },
+            {
+              "value": "manual",
+              "label": {
+                "en": "Manual plan",
+                "fr": "Planning manuel",
+                "de": "Manueller Plan",
+                "es": "Plan manual"
+              }
+            },
+            {
+              "value": "backup",
+              "label": {
+                "en": "Emergency charge",
+                "fr": "Charge de secours",
+                "de": "Notladung",
+                "es": "Carga de emergencia"
+              }
+            },
+            {
+              "value": "use_time",
+              "label": {
+                "en": "Time of use",
+                "fr": "Plages tarifaires",
+                "de": "Tarifzeiten",
+                "es": "Franjas horarias"
+              }
+            },
+            {
+              "value": "smart",
+              "label": {
+                "en": "AI mode",
+                "fr": "Mode IA",
+                "de": "KI-Modus",
+                "es": "Modo IA"
+              }
+            },
+            {
+              "value": "time_slot",
+              "label": {
+                "en": "Dynamic tariff",
+                "fr": "Tarif dynamique",
+                "de": "Dynamischer Tarif",
+                "es": "Tarifa dinámica"
+              }
+            }
           ]
         }
       ],
       "variables": [
         {
-          "key": "target",
+          "key": "mode",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": {
+            "en": "New mode (key)",
+            "fr": "Nouveau mode (clé)",
+            "de": "Neuer Modus (Schlüssel)",
+            "es": "Nuevo modo (clave)"
+          }
+        },
+        {
+          "key": "mode_label",
+          "type": "string",
+          "label": {
+            "en": "New mode",
+            "fr": "Nouveau mode",
+            "de": "Neuer Modus",
+            "es": "Nuevo modo"
+          }
+        },
+        {
+          "key": "previous_mode",
+          "type": "string",
+          "label": {
+            "en": "Previous mode (key)",
+            "fr": "Mode précédent (clé)",
+            "de": "Vorheriger Modus (Schlüssel)",
+            "es": "Modo anterior (clave)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "connection_changed",
+      "label": {
+        "en": "Device offline or back",
+        "fr": "Appareil hors ligne ou revenu",
+        "de": "Gerät offline oder zurück",
+        "es": "Dispositivo sin conexión o de vuelta"
+      },
+      "description": {
+        "en": "A Solarbank, meter or plug stopped reporting to the Anker cloud, or reports again.",
+        "fr": "Une Solarbank, un compteur ou une prise ne remonte plus au cloud Anker, ou remonte de nouveau.",
+        "de": "Eine Solarbank, ein Zähler oder eine Steckdose meldet sich nicht mehr bei der Anker-Cloud oder wieder.",
+        "es": "Una Solarbank, un medidor o un enchufe dejó de informar a la nube de Anker, o vuelve a hacerlo."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Device",
+            "fr": "Appareil",
+            "de": "Gerät",
+            "es": "Dispositivo"
+          }
+        },
+        {
+          "key": "state",
+          "type": "select",
+          "label": {
+            "en": "State",
+            "fr": "État",
+            "de": "Zustand",
+            "es": "Estado"
+          },
+          "options": [
+            {
+              "value": "offline",
+              "label": {
+                "en": "Offline",
+                "fr": "Hors ligne",
+                "de": "Offline",
+                "es": "Sin conexión"
+              }
+            },
+            {
+              "value": "online",
+              "label": {
+                "en": "Back online",
+                "fr": "De nouveau en ligne",
+                "de": "Wieder online",
+                "es": "De nuevo en línea"
+              }
+            }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "device_name",
+          "type": "string",
+          "label": {
+            "en": "Device name",
+            "fr": "Nom de l'appareil",
+            "de": "Gerätename",
+            "es": "Nombre del dispositivo"
+          }
+        },
+        {
+          "key": "state",
+          "type": "string",
+          "label": {
+            "en": "State (offline or online)",
+            "fr": "État (offline ou online)",
+            "de": "Zustand (offline oder online)",
+            "es": "Estado (offline u online)"
+          }
         }
       ]
     }
   ],
   "scene_actions": [
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+      "key": "set_output_power",
+      "label": {
+        "en": "Set the Solarbank output power",
+        "fr": "Régler la puissance de sortie",
+        "de": "Ausgangsleistung einstellen",
+        "es": "Ajustar la potencia de salida"
       },
-      "timeout_seconds": 15,
+      "description": {
+        "en": "Output power of the current slot of the manual plan (Solarbank 2/3, “Allow settings” on).",
+        "fr": "Puissance de la plage en cours du planning manuel (Solarbank 2/3, « Autoriser les réglages » coché).",
+        "de": "Leistung des aktuellen Zeitraums des manuellen Plans (Solarbank 2/3, „Einstellungen erlauben“ an).",
+        "es": "Potencia de la franja actual del plan manual (Solarbank 2/3, «Permitir los ajustes» activado)."
+      },
+      "timeout_seconds": 30,
       "fields": [
         {
-          "key": "device",
+          "key": "system",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
+          "label": {
+            "en": "Anker system",
+            "fr": "Système Anker",
+            "de": "Anker-System",
+            "es": "Sistema Anker"
+          },
+          "description": {
+            "en": "The system device, or any device of the system.",
+            "fr": "L'appareil système, ou n'importe quel appareil du système.",
+            "de": "Das Systemgerät oder ein beliebiges Gerät des Systems.",
+            "es": "El dispositivo del sistema o cualquier dispositivo del sistema."
+          },
           "required": true
+        },
+        {
+          "key": "power",
+          "type": "number",
+          "label": {
+            "en": "Output power (W)",
+            "fr": "Puissance de sortie (W)",
+            "de": "Ausgangsleistung (W)",
+            "es": "Potencia de salida (W)"
+          },
+          "required": true,
+          "min": 0,
+          "max": 3600
         }
       ],
       "outputs": [
         {
-          "key": "signalled",
-          "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "key": "applied_power",
+          "type": "number",
+          "label": {
+            "en": "Power applied (W)",
+            "fr": "Puissance appliquée (W)",
+            "de": "Angewendete Leistung (W)",
+            "es": "Potencia aplicada (W)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "set_usage_mode",
+      "label": {
+        "en": "Set the Solarbank usage mode",
+        "fr": "Changer le mode d'utilisation",
+        "de": "Betriebsmodus ändern",
+        "es": "Cambiar el modo de uso"
+      },
+      "description": {
+        "en": "Usage mode of a Solarbank 2/3 system (“Allow settings” on).",
+        "fr": "Mode d'utilisation d'un système Solarbank 2/3 (« Autoriser les réglages » coché).",
+        "de": "Betriebsmodus eines Solarbank-2/3-Systems („Einstellungen erlauben“ an).",
+        "es": "Modo de uso de un sistema Solarbank 2/3 («Permitir los ajustes» activado)."
+      },
+      "timeout_seconds": 30,
+      "fields": [
+        {
+          "key": "system",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Anker system",
+            "fr": "Système Anker",
+            "de": "Anker-System",
+            "es": "Sistema Anker"
+          },
+          "description": {
+            "en": "The system device, or any device of the system.",
+            "fr": "L'appareil système, ou n'importe quel appareil du système.",
+            "de": "Das Systemgerät oder ein beliebiges Gerät des Systems.",
+            "es": "El dispositivo del sistema o cualquier dispositivo del sistema."
+          },
+          "required": true
+        },
+        {
+          "key": "mode",
+          "type": "select",
+          "label": {
+            "en": "Usage mode",
+            "fr": "Mode d'utilisation",
+            "de": "Betriebsmodus",
+            "es": "Modo de uso"
+          },
+          "required": true,
+          "options": [
+            {
+              "value": "smartmeter",
+              "label": {
+                "en": "Smart meter",
+                "fr": "Compteur intelligent",
+                "de": "Smart Meter",
+                "es": "Medidor inteligente"
+              }
+            },
+            {
+              "value": "smartplugs",
+              "label": {
+                "en": "Smart plugs",
+                "fr": "Prises connectées",
+                "de": "Smarte Steckdosen",
+                "es": "Enchufes inteligentes"
+              }
+            },
+            {
+              "value": "manual",
+              "label": {
+                "en": "Manual plan",
+                "fr": "Planning manuel",
+                "de": "Manueller Plan",
+                "es": "Plan manual"
+              }
+            },
+            {
+              "value": "smart",
+              "label": {
+                "en": "AI mode",
+                "fr": "Mode IA",
+                "de": "KI-Modus",
+                "es": "Modo IA"
+              }
+            }
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "key": "mode",
+          "type": "string",
+          "label": {
+            "en": "Mode applied",
+            "fr": "Mode appliqué",
+            "de": "Angewendeter Modus",
+            "es": "Modo aplicado"
+          }
         }
       ]
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+      "key": "energy_flow",
+      "label": {
+        "en": "Anker SOLIX",
+        "fr": "Anker SOLIX",
+        "de": "Anker SOLIX",
+        "es": "Anker SOLIX"
       },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+      "description": {
+        "en": "Solar, battery, home and grid of a system, the battery level and the usage mode.",
+        "fr": "Solaire, batterie, maison et réseau d'un système, niveau de batterie et mode.",
+        "de": "Solar, Batterie, Haus und Netz eines Systems, Batteriestand und Betriebsmodus.",
+        "es": "Solar, batería, casa y red de un sistema, nivel de batería y modo de uso."
+      },
+      "icon": "sun",
+      "settings": [
+        {
+          "key": "system",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Anker system",
+            "fr": "Système Anker",
+            "de": "Anker-System",
+            "es": "Sistema Anker"
+          },
+          "description": {
+            "en": "The system device, or any device of the system.",
+            "fr": "L'appareil système, ou n'importe quel appareil du système.",
+            "de": "Das Systemgerät oder ein beliebiges Gerät des Systems.",
+            "es": "El dispositivo del sistema o cualquier dispositivo del sistema."
+          }
+        }
+      ],
+      "action_timeout_seconds": 30
     }
   ]
 }

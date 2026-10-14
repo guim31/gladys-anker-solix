@@ -1,0 +1,421 @@
+{
+  "site": {
+    "site_id": "fb438e75-b134-1878-0c51-2eca02452921",
+    "site_name": "Solarbank",
+    "site_img": "",
+    "device_type_list": [3, 6],
+    "ms_type": 1,
+    "power_site_type": 12,
+    "is_allow_delete": true,
+    "support_device_models": ["A17C5", "A17X7", "SHEM3", "SHEMP3", "A17X8", "SHPPS"],
+    "current_site_device_models": ["A17C5", "SHEMP3"]
+  },
+  "scene": {
+    "home_info": {
+      "home_name": "Home",
+      "home_img": "",
+      "charging_power": "0.00",
+      "power_unit": "W"
+    },
+    "solar_list": [],
+    "pps_info": {
+      "pps_list": [],
+      "total_charging_power": "0.00",
+      "power_unit": "W",
+      "total_battery_power": "0.00",
+      "updated_time": "",
+      "pps_status": 0
+    },
+    "statistics": [
+      {
+        "type": "1",
+        "total": "198.61",
+        "unit": "kWh"
+      },
+      {
+        "type": "2",
+        "total": "198.01",
+        "unit": "kg"
+      },
+      {
+        "type": "3",
+        "total": "56.17",
+        "unit": "€"
+      }
+    ],
+    "topology_type": "1",
+    "solarbank_info": {
+      "solarbank_list": [
+        {
+          "device_pn": "A17C5",
+          "device_sn": "TESTBUAVHO3AV8WLQ",
+          "device_name": "Solarbank 3",
+          "device_img": "",
+          "battery_power": "15",
+          "bind_site_status": "",
+          "charging_power": "534",
+          "power_unit": "W",
+          "charging_status": "0",
+          "status": "1",
+          "wireless_type": "1",
+          "main_version": "",
+          "photovoltaic_power": "534",
+          "output_power": "534",
+          "create_time": 1747913739,
+          "set_load_power": "",
+          "sub_package_num": 0,
+          "output_cutoff_data": 0,
+          "is_display": true,
+          "bat_charge_power": "0",
+          "pv_power": null,
+          "feature_switch": {
+            "0w_feed_v2": true,
+            "enable_parallel": false,
+            "enable_timeslot": true,
+            "exceed_power": false,
+            "heating": false,
+            "plug_switch_report": true
+          },
+          "heating_power": "",
+          "bat_discharge_power": "0",
+          "err_code": 0
+        }
+      ],
+      "total_charging_power": "0",
+      "power_unit": "W",
+      "charging_status": "0",
+      "total_battery_power": "0.15",
+      "updated_time": "2025-07-18 13:22:23",
+      "total_photovoltaic_power": "534",
+      "total_output_power": "534.00",
+      "display_set_power": false,
+      "battery_discharge_power": "0",
+      "ac_power": "0",
+      "to_home_load": "0",
+      "is_display_data": true,
+      "solar_power_1": "252",
+      "solar_power_2": "282",
+      "solar_power_3": "0",
+      "solar_power_4": "0",
+      "other_input_power": "0",
+      "micro_inverter_power": "0",
+      "micro_inverter_power_limit": "0",
+      "micro_inverter_low_power_limit": "0",
+      "grid_to_battery_power": "0",
+      "pei_heating_power": "0",
+      "backup_info": {
+        "start_time": 0,
+        "end_time": 0,
+        "full_time": 0
+      },
+      "use_time_excute_info": {
+        "current_band": "0"
+      }
+    },
+    "retain_load": "200W",
+    "scene_mode": 7,
+    "home_load_power": "1350",
+    "updated_time": "01-01-0001 00:00:00",
+    "power_site_type": 12,
+    "site_id": "fb438e75-b134-1878-0c51-2eca02452921",
+    "powerpanel_list": [],
+    "grid_info": {
+      "grid_list": [
+        {
+          "device_pn": "SHEMP3",
+          "device_sn": "TESTAFXOUQV5WY",
+          "device_name": "Netzstrom",
+          "device_img": "",
+          "create_time": 1751559005,
+          "status": "1",
+          "bind_site_status": "",
+          "wireless_type": ""
+        }
+      ],
+      "photovoltaic_to_grid_power": "0",
+      "grid_to_home_power": "816",
+      "grid_status": 0,
+      "has_history_data": true
+    },
+    "is_downgrade": false,
+    "error_code": 0,
+    "smart_plug_info": null,
+    "feature_switch": {
+      "0w_feed_v2": true,
+      "enable_parallel": false,
+      "enable_timeslot": true,
+      "exceed_power": false,
+      "heating": false,
+      "plug_switch_report": true
+    },
+    "other_loads_power": "1350",
+    "priority_discharge_switch": 0,
+    "display_priority_discharge_tips": 0,
+    "priority_discharge_upgrade_devices": "",
+    "style_id": 0,
+    "is_show_priority_discharge": 0,
+    "solarbank_pps_info": {
+      "pps_list": null,
+      "total_charging_power": "",
+      "total_output_power": "",
+      "total_battery_power": "",
+      "total_pv_input_power": "",
+      "total_home_load_power": "",
+      "total_grid_to_battery": "",
+      "home": null,
+      "grid": null,
+      "system": null
+    },
+    "user_scene_mode": 7,
+    "is_dynamic_price_down_grade": false,
+    "aiems_profit": {
+      "unit": "€",
+      "aiems_profit_total": "46.68",
+      "percentage": "9.30",
+      "show_percentage": true,
+      "aiems_self_use_diff": "3.97"
+    },
+    "switch_0w": 0,
+    "err_msg": ""
+  },
+  "schedule": {
+    "mode_type": 7,
+    "custom_rate_plan": [
+      {
+        "index": 0,
+        "week": [0, 1, 2, 3, 4, 5, 6],
+        "ranges": [
+          {
+            "start_time": "00:00",
+            "end_time": "24:00",
+            "power": 200
+          }
+        ]
+      }
+    ],
+    "blend_plan": [],
+    "use_time": [
+      {
+        "sea": {
+          "start_month": 1,
+          "end_month": 3
+        },
+        "weekday": [
+          {
+            "start_time": 0,
+            "end_time": 18,
+            "type": 3
+          },
+          {
+            "start_time": 18,
+            "end_time": 21,
+            "type": 1
+          },
+          {
+            "start_time": 21,
+            "end_time": 24,
+            "type": 3
+          }
+        ],
+        "weekend": [
+          {
+            "start_time": 0,
+            "end_time": 18,
+            "type": 3
+          },
+          {
+            "start_time": 18,
+            "end_time": 21,
+            "type": 1
+          },
+          {
+            "start_time": 21,
+            "end_time": 24,
+            "type": 3
+          }
+        ],
+        "weekday_price": [
+          {
+            "price": "0.2",
+            "type": 3
+          },
+          {
+            "price": "0.4",
+            "type": 1
+          }
+        ],
+        "weekend_price": [
+          {
+            "price": "0.2",
+            "type": 3
+          },
+          {
+            "price": "0.4",
+            "type": 1
+          }
+        ],
+        "unit": "€",
+        "is_same": false
+      },
+      {
+        "sea": {
+          "start_month": 4,
+          "end_month": 9
+        },
+        "weekday": [
+          {
+            "start_time": 0,
+            "end_time": 18,
+            "type": 3
+          },
+          {
+            "start_time": 18,
+            "end_time": 21,
+            "type": 1
+          },
+          {
+            "start_time": 21,
+            "end_time": 24,
+            "type": 3
+          }
+        ],
+        "weekend": [
+          {
+            "start_time": 0,
+            "end_time": 18,
+            "type": 3
+          },
+          {
+            "start_time": 18,
+            "end_time": 21,
+            "type": 1
+          },
+          {
+            "start_time": 21,
+            "end_time": 24,
+            "type": 3
+          }
+        ],
+        "weekday_price": [
+          {
+            "price": "0.2",
+            "type": 3
+          },
+          {
+            "price": "0.4",
+            "type": 1
+          }
+        ],
+        "weekend_price": [
+          {
+            "price": "0.2",
+            "type": 3
+          },
+          {
+            "price": "0.4",
+            "type": 1
+          }
+        ],
+        "unit": "€",
+        "is_same": false
+      },
+      {
+        "sea": {
+          "start_month": 10,
+          "end_month": 12
+        },
+        "weekday": [
+          {
+            "start_time": 0,
+            "end_time": 18,
+            "type": 3
+          },
+          {
+            "start_time": 18,
+            "end_time": 21,
+            "type": 1
+          },
+          {
+            "start_time": 21,
+            "end_time": 24,
+            "type": 3
+          }
+        ],
+        "weekend": [
+          {
+            "start_time": 0,
+            "end_time": 18,
+            "type": 3
+          },
+          {
+            "start_time": 18,
+            "end_time": 21,
+            "type": 1
+          },
+          {
+            "start_time": 21,
+            "end_time": 24,
+            "type": 3
+          }
+        ],
+        "weekday_price": [
+          {
+            "price": "0.2",
+            "type": 3
+          },
+          {
+            "price": "0.4",
+            "type": 1
+          }
+        ],
+        "weekend_price": [
+          {
+            "price": "0.2",
+            "type": 3
+          },
+          {
+            "price": "0.4",
+            "type": 1
+          }
+        ],
+        "unit": "€",
+        "is_same": false
+      }
+    ],
+    "manual_backup": {
+      "ranges": [
+        {
+          "start_time": 1751840220,
+          "end_time": 1751851020
+        }
+      ],
+      "switch": false
+    },
+    "reserved_soc": 0,
+    "dynamic_price": {
+      "country": "DE",
+      "company": "Nordpool",
+      "area": "GER",
+      "pct": null,
+      "currency": "€",
+      "adjust_coef": null
+    },
+    "ai_ems": {
+      "enable": true,
+      "status": 5
+    },
+    "time_slot": null,
+    "schedule_mode": {
+      "last_select_mode": 8
+    },
+    "default_home_load": 200,
+    "max_load": 1200,
+    "min_load": 0,
+    "step": 10
+  },
+  "energy_today": {
+    "solar_total": "1.91",
+    "trend_unit": "w",
+    "local_time": "2025-07-18 13:23"
+  }
+}
